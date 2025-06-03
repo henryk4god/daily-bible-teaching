@@ -1,0 +1,23 @@
+{
+  "name": "Daily Bible Teaching",
+  "short_name": "BibleTeach",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f9f9f9",
+  "theme_color": "#4CAF50",
+  "description": "A daily Bible teaching widget with audio playback and sharing features.",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "lang": "en-US",
+  "orientation": "portrait"
+}
