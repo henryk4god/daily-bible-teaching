@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Daily Bible teaching widget with audio playback and sharing features"/>
+  <meta name="theme-color" content="#4CAF50"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <title>Daily Bible Teaching Widget</title>
+  <style>
+    /* All your existing CSS remains exactly the same */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: var(--primary-color);
+      color: white;
+      padding: 8px;
+      z-index: 100;
+      transition: top 0.3s;
+    }
+    .skip-link:focus {
+      top: 0;
+    }
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    #bible-teaching-widget {
+      --primary-color: #4CAF50;
+      --bg-color: #f9f9f9;
+      --text-color: #333;
+      --card-bg: #ffffff;
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      max-width: 700px;
+      margin: auto;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    #bible-teaching-widget.dark {
+      --bg-color: #1e1e1e;
+      --text-color: #f0f0f0;
+      --card-bg: #2c2c2c;
+    }
+    .caption {
+      text-align: center;
+      font-size: 18px;
+      color: var(--primary-color);
+      font-weight: 600;
+      margin-bottom: 20px;
+      animation: pulse 2s infinite;
+    }
+    .date-display {
+      text-align: center;
+      font-size: 14px;
+      margin-bottom: 10px;
+      color: gray;
+    }
+    input[type="date"] {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      width: 100%;
+      max-width: 250px;
+    }
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 14px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+    button:hover, button:focus {
+      background-color: #45a049;
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+    }
+    .teaching-card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      font-size: clamp(15px, 4vw, 17px);
+      line-height: 1.7;
+      text-align: justify;
+      word-wrap: break-word;
+      animation: fadeIn 0.5s ease-in;
+    }
+    .teaching-card blockquote {
+      font-size: 1em;
+      background: #f0f7f4;
+      border-left: 4px solid var(--primary-color);
+      padding: 1em;
+      margin: 1em 0;
+      font-style: italic;
+    }
+    .action-row,
+    .feedback-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .action-row button,
+    .feedback-row button {
+      flex: 1;
+    }
+    .feedback-row button {
+      font-size: 20px;
+      background-color: #eee;
+      color: #333;
+    }
+    #mp3-download {
+      display: none;
+      text-align: center;
+      color: var(--primary-color);
+      font-weight: 500;
+      text-decoration: underline;
+      margin-top: 10px;
+    }
+    #audio-status {
+      margin: 10px 0;
+      text-align: center;
+      font-size: 14px;
+    }
+    .spinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px 0;
+    }
+    .spinner svg {
+      width: 48px;
+      height: 48px;
+      animation: spin 2s linear infinite;
+    }
+    
+    /* Updated Bible Popup Styles */
+    .bible-popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.7);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .bible-popup {
+      background-color: white;
+      color: #333;
+      border-radius: 12px;
+      padding: 25px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      position: relative;
+      animation: popupFadeIn 0.3s ease-out;
+    }
+    
+    #bible-teaching-widget.dark .bible-popup {
+      background-color: #2c2c2c;
+      color: #f0f0f0;
+    }
+    
+    .bible-popup-close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: inherit;
+      padding: 5px;
+    }
+    
+    .bible-popup h3 {
+      margin-top: 0;
+      color: #4CAF50;
+      padding-right: 30px;
+    }
+    
+    .bible-popup-content {
+      margin-top: 15px;
+      line-height: 1.6;
+    }
+    
+    .bible-popup-content sup {
+      font-size: 0.7em;
+      vertical-align: super;
+    }
+    
+    @keyframes popupFadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.8; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @media (max-width: 600px) {
+      #bible-teaching-widget {
+        padding: 15px;
+      }
+      .teaching-card {
+        font-size: clamp(14px, 4vw, 16px);
+        padding: 15px;
+      }
+      button {
+        font-size: 15px;
+        padding: 12px 16px;
+      }
+      .caption {
+        font-size: 16px;
+      }
+      .teaching-card blockquote {
+        font-size: 0.95em;
+        padding: 0.8em;
+      }
+      .bible-popup {
+        max-height: 70vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="#bible-teaching-widget" class="skip-link">Skip to main content</a>
+  <div id="bible-teaching-widget" role="article" aria-label="Daily Bible Teaching">
+    <h1 class="sr-only">Daily Bible Teaching</h1>
+    <h2 class="caption" aria-hidden="true">📖 Study and Grow With Today's Bible Teaching 📖</h2>
+    
+    <div class="date-display" id="dateDisplay" aria-live="polite">Loading date...</div>
+    
+    <input type="date" id="calendarPicker" aria-label="Select date for Bible teaching" onchange="getTeachingByDate(this.value)">
+    
+    <button onclick="getBibleTeaching()" aria-label="Get today's Bible teaching">Get Today's Bible Teaching</button>
+
+    <div class="spinner" id="loadingSpinner" style="display: none;">
+      <svg fill="#4CAF50" viewBox="0 0 512 512">
+        <path d="M256 32C132.3 32 32 132.3 32 256h64c0-88.4 71.6-160 160-160V32z">
+          <animateTransform attributeName="transform" type="rotate" from="0 256 256"
+            to="360 256 256" dur="1.2s" repeatCount="indefinite" />
+        </path>
+      </svg>
+    </div>
+
+    <div id="teaching-output" class="teaching-card" aria-live="polite">
+      Click the button above to receive today's Bible study.
+    </div>
+
+    <a id="mp3-download" href="#" download aria-label="Download audio version">🎧 Download Teaching Audio (MP3)</a>
+
+    <div id="audio-status" aria-live="polite"></div>
+
+    <div class="action-row">
+      <button onclick="shareTeaching()" aria-label="Share this teaching">📤 Share</button>
+      <button onclick="toggleDarkMode()" aria-label="Toggle dark mode">🌃 Dark Mode</button>
+      <button onclick="playTeachingMP3()" aria-label="Play audio teaching">🔊 Listen</button>
+      <button onclick="stopTeachingAudio()" id="stopButton" aria-label="Stop audio" disabled>🛑 Stop</button>
+      <button onclick="retryAudioPlayback()" style="display:none;" id="retry-button" aria-label="Retry audio playback">🔄 Retry</button>
+      <button id="install-button" style="display: none; background-color: #2196F3;">📲 Install App</button>
+    </div>
+
+    <div class="feedback-row">
+      <button onclick="alert('Bro Henry says ❤️ Thank you for liking today\'s teaching!')" aria-label="Like this teaching">❤️</button>
+      <button onclick="alert('Bro Henry says 🙏 We\'re praying for you too!')" aria-label="Request prayer">🙏</button>
+      <button onclick="alert('Bro Henry says ⭐ Thank you for your feedback!')" aria-label="Give feedback">⭐</button>
+  </div>
+
+  <script>
+    // =========== CONFIGURATION =========== //
+    const TEACHINGS_JSON_URL = '/data/bible-teachings.json';
+    const AUDIO_JSON_URL = '/data/audio.json';
+
+    // =========== GLOBAL VARIABLES =========== //
+    let audioObject = null;
+    let deferredPrompt;
+
+    // =========== PWA INSTALLATION =========== //
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('install-button').style.display = 'block';
+    });
+
+    document.getElementById('install-button').addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response: ${outcome}`);
+      deferredPrompt = null;
+      document.getElementById('install-button').style.display = 'none';
+    });
+
+    window.addEventListener('appinstalled', () => {
+      document.getElementById('install-button').style.display = 'none';
+    });
+
+    // =========== SERVICE WORKER REGISTRATION =========== //
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(registration => {
+          console.log('ServiceWorker registered');
+        }).catch(err => {
+          console.log('ServiceWorker registration failed:', err);
+        });
+      });
+    }
+
+    // =========== INITIALIZATION =========== //
+    document.addEventListener('DOMContentLoaded', function () {
+      const dateDisplay = document.getElementById("dateDisplay");
+      const today = new Date();
+      const currentDate = today.toISOString().split('T')[0];
+      dateDisplay.innerText = today.toLocaleDateString(undefined, {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+      document.getElementById("calendarPicker").value = currentDate;
+      getTeachingByDate(currentDate);
+      showDailyPopup("Today's Devotional 📖", "Tap to read or listen and grow spiritually.");
+    });
+
+    function showDailyPopup(title, message) {
+      const lastPopupDate = localStorage.getItem('lastPopupDate');
+      const today = new Date().toDateString();
+      if (lastPopupDate !== today) {
+        const popup = document.createElement('div');
+        popup.style.position = 'fixed';
+        popup.style.bottom = '20px';
+        popup.style.right = '20px';
+        popup.style.backgroundColor = 'var(--primary-color)';
+        popup.style.color = 'white';
+        popup.style.padding = '15px';
+        popup.style.borderRadius = '8px';
+        popup.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+        popup.style.zIndex = '1000';
+        popup.style.maxWidth = '300px';
+        popup.innerHTML = `<h3>${title}</h3><p>${message}</p>`;
+        document.body.appendChild(popup);
+        setTimeout(() => {
+          popup.style.transition = 'opacity 0.5s';
+          popup.style.opacity = '0';
+          setTimeout(() => popup.remove(), 500);
+        }, 8000);
+        localStorage.setItem('lastPopupDate', today);
+      }
+    }
+
+    // =========== CORE FUNCTIONS =========== //
+    function getBibleTeaching() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById("calendarPicker").value = today;
+      getTeachingByDate(today);
+    }
+
+    async function getTeachingByDate(dateStr) {
+      const output = document.getElementById('teaching-output');
+      const spinner = document.getElementById('loadingSpinner');
+      const mp3Link = document.getElementById('mp3-download');
+      const audioStatus = document.getElementById('audio-status');
+
+      output.style.display = 'none';
+      spinner.style.display = 'flex';
+      mp3Link.style.display = 'none';
+      audioStatus.textContent = '';
+
+      try {
+        const teachingsResponse = await fetch(TEACHINGS_JSON_URL);
+        const teachingsData = await teachingsResponse.json();
+
+        const audioResponse = await fetch(AUDIO_JSON_URL);
+        const audioData = await audioResponse.json();
+
+        const todayTeaching = teachingsData.find(item => item.date === dateStr);
+        const todayAudio = audioData.audio_files.find(item => item.filename === `${dateStr}.mp3`);
+
+        spinner.style.display = 'none';
+        output.style.display = 'block';
+
+        if (todayTeaching) {
+          let teachingContent = todayTeaching.teaching;
+          teachingContent = teachingContent.replace(/(\d?\s?\w+\s?\d+:\d+(-\d+)?(,\s?\d+)?)/g,
+            `<a href="javascript:void(0)" onclick="showBiblePopup('$1')" style="color: var(--primary-color); text-decoration: underline;">$1</a>`
+          );
+          output.innerHTML = teachingContent;
+
+          if (todayAudio) {
+            mp3Link.href = todayAudio.url; // Direct link to MP3 hosted on GitHub
+            mp3Link.style.display = 'block';
+          }
+        } else {
+          output.innerHTML = '⚠️ No teaching found for this date.';
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        spinner.style.display = 'none';
+        output.style.display = 'block';
+        output.innerHTML = "⚠️ Failed to load teaching.";
+      }
+    }
+
+    // =========== AUDIO FUNCTIONS =========== //
+    async function playTeachingMP3() {
+      const date = document.getElementById("calendarPicker").value;
+      const audioStatus = document.getElementById('audio-status');
+      const stopButton = document.getElementById('stopButton');
+      const retryButton = document.getElementById('retry-button');
+
+      try {
+        stopTeachingAudio(); // Stop any current playback first
+        audioStatus.textContent = 'Loading audio...';
+        audioStatus.style.color = 'green';
+        stopButton.disabled = false;
+        retryButton.style.display = 'none';
+
+        const audioResponse = await fetch(AUDIO_JSON_URL);
+        const audioData = await audioResponse.json();
+
+        const audioFile = audioData.audio_files.find(item => item.filename === `${date}.mp3`);
+        if (!audioFile) throw new Error('Audio file not found for this date');
+
+        const audioUrl = audioFile.url;
+
+        audioObject = new Audio(audioUrl);
+        audioObject.preload = 'auto';
+
+        audioObject.onerror = (e) => {
+          console.error('Audio error:', e);
+          audioStatus.textContent = 'Error playing audio - click to retry';
+          audioStatus.style.color = 'red';
+          stopButton.disabled = true;
+          retryButton.style.display = 'block';
+        };
+
+        audioObject.oncanplay = () => {
+          audioObject.play()
+            .then(() => {
+              audioStatus.textContent = 'Now playing';
+              audioStatus.style.color = 'green';
+            })
+            .catch(err => {
+              console.error('Playback failed:', err);
+              audioStatus.textContent = 'Playback failed - click to retry';
+              audioStatus.style.color = 'red';
+              stopButton.disabled = true;
+              retryButton.style.display = 'block';
+            });
+        };
+
+        audioObject.onended = () => {
+          audioStatus.textContent = 'Playback completed';
+          stopButton.disabled = true;
+        };
+      } catch (error) {
+        console.error('Audio initialization error:', error);
+        audioStatus.textContent = 'Error loading audio: ' + error.message;
+        audioStatus.style.color = 'red';
+        stopButton.disabled = true;
+      }
+    }
+
+    function stopTeachingAudio() {
+      const audioStatus = document.getElementById('audio-status');
+      const stopButton = document.getElementById('stopButton');
+      if (audioObject) {
+        audioObject.pause();
+        audioObject.currentTime = 0;
+        audioObject.src = '';
+        audioObject.load();
+        audioStatus.textContent = 'Playback stopped';
+        audioStatus.style.color = '#888';
+        stopButton.disabled = true;
+      }
+    }
+
+    function retryAudioPlayback() {
+      document.getElementById('retry-button').style.display = 'none';
+      playTeachingMP3();
+    }
+
+    // =========== UI FUNCTIONS =========== //
+    function toggleDarkMode() {
+      document.getElementById("bible-teaching-widget").classList.toggle("dark");
+    }
+
+    function shareTeaching() {
+      const text = document.getElementById("teaching-output").innerText;
+      if (navigator.share) {
+        navigator.share({
+          title: 'Daily Bible Teaching',
+          text: text,
+          url: window.location.href
+        }).catch(err => {
+          copyToClipboard(text);
+        });
+      } else {
+        copyToClipboard(text);
+      }
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Teaching copied to clipboard! You can now paste and share it.");
+      });
+    }
+
+    // =========== BIBLE POPUP FUNCTION =========== //
+    function showBiblePopup(reference) {
+      const overlay = document.createElement('div');
+      overlay.className = 'bible-popup-overlay';
+      const popup = document.createElement('div');
+      popup.className = 'bible-popup';
+      if (document.getElementById("bible-teaching-widget").classList.contains("dark")) {
+        popup.classList.add("dark");
+      }
+
+      popup.innerHTML = `
+        <button class="bible-popup-close" aria-label="Close popup">&times;</button>
+        <h3>${reference}</h3>
+        <div class="bible-popup-content">
+          <div class="spinner">
+            <svg fill="#4CAF50" viewBox="0 0 512 512" width="24" height="24">
+              <path d="M256 32C132.3 32 32 132.3 32 256h64c0-88.4 71.6-160 160-160V32z">
+                <animateTransform attributeName="transform" type="rotate" from="0 256 256"
+                  to="360 256 256" dur="1.2s" repeatCount="indefinite" />
+              </path>
+            </svg>
+          </div>
+        </div>
+      `;
+
+      overlay.appendChild(popup);
+      document.body.appendChild(overlay);
+
+      popup.querySelector('.bible-popup-close').addEventListener('click', () => {
+        document.body.removeChild(overlay);
+      });
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) document.body.removeChild(overlay);
+      });
+
+      const timeout = setTimeout(() => {
+        const content = popup.querySelector('.bible-popup-content');
+        if (content) {
+          content.innerHTML = `<p>Taking longer than expected to load. Please try again.</p>`;
+        }
+      }, 10000);
+
+      fetch(`https://bible-api.com/${encodeURIComponent(reference)}?translation=kjv`)
+        .then(res => res.json())
+        .then(data => {
+          clearTimeout(timeout);
+          const content = popup.querySelector('.bible-popup-content');
+          if (data.error) {
+            content.innerHTML = `<p>Could not load "${reference}".</p>`;
+          } else {
+            const verses = data.verses.map(v => `<sup>${v.verse}</sup> ${v.text}`).join(' ');
+            content.innerHTML = `
+              <div>${verses}</div>
+              <p style="text-align: right; font-style: italic; margin-top: 20px;">
+                — ${data.reference} (KJV)
+              </p>
+            `;
+          }
+        })
+        .catch(err => {
+          clearTimeout(timeout);
+          const content = popup.querySelector('.bible-popup-content');
+          if (content) {
+            content.innerHTML = `<p>Error loading Bible text.</p><p>${err.message || 'Please try again later.'}</p>`;
+          }
+        });
+    }
+  </script>
+</body>
+</html>
