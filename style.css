@@ -1,0 +1,271 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--primary-color);
+  color: white;
+  padding: 8px;
+  z-index: 100;
+  transition: top 0.3s;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+#bible-teaching-widget {
+  --primary-color: #4CAF50;
+  --bg-color: #f9f9f9;
+  --text-color: #333333;
+  --card-bg: #ffffff;
+  
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  max-width: 700px;
+  margin: auto;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+#bible-teaching-widget.dark {
+  --bg-color: #1e1e1e;
+  --text-color: #f0f0f0;
+  --card-bg: #2c2c2c;
+}
+
+.caption {
+  text-align: center;
+  font-size: 18px;
+  color: var(--primary-color);
+  font-weight: 600;
+  margin-bottom: 20px;
+  animation: pulse 2s infinite;
+}
+
+.date-display {
+  text-align: center;
+  font-size: 14px;
+  margin-bottom: 10px;
+  color: gray;
+}
+
+input[type="date"] {
+  display: block;
+  margin: 10px auto;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 100%;
+  max-width: 250px;
+  font-family: inherit;
+}
+
+button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 14px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
+  margin-bottom: 15px;
+  font-family: inherit;
+  font-weight: 600;
+}
+
+button:hover, button:focus {
+  background-color: #45a049;
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.teaching-card {
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-size: clamp(15px, 4vw, 17px);
+  line-height: 1.7;
+  text-align: justify;
+  word-wrap: break-word;
+  animation: fadeIn 0.5s ease-in;
+}
+
+.teaching-card blockquote {
+  font-size: 1em;
+  background: #f0f7f4;
+  border-left: 4px solid var(--primary-color);
+  padding: 1em;
+  margin: 1em 0;
+  font-style: italic;
+}
+
+#bible-teaching-widget.dark .teaching-card blockquote {
+  background: #25332e;
+  color: #e0e0e0;
+}
+
+.action-row,
+.feedback-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.action-row button,
+.feedback-row button {
+  flex: 1;
+}
+
+.feedback-row button {
+  font-size: 20px;
+  background-color: #eee;
+  color: #333;
+}
+
+#bible-teaching-widget.dark .feedback-row button {
+  background-color: #3a3a3a;
+  color: #fff;
+}
+
+.spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.spinner svg {
+  width: 48px;
+  height: 48px;
+  animation: spin 2s linear infinite;
+}
+
+/* Bible link parsing layout adjustments */
+.bible-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.7);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bible-popup {
+  background-color: white;
+  color: #333;
+  border-radius: 12px;
+  padding: 25px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  position: relative;
+  font-family: 'Poppins', sans-serif;
+  animation: popupFadeIn 0.3s ease-out;
+}
+
+#bible-teaching-widget.dark .bible-popup {
+  background-color: #2c2c2c;
+  color: #f0f0f0;
+}
+
+.bible-popup-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: inherit;
+  padding: 5px;
+}
+
+.bible-popup h3 {
+  margin-top: 0;
+  color: #4CAF50;
+  padding-right: 30px;
+}
+
+.bible-popup-content {
+  margin-top: 15px;
+  line-height: 1.6;
+}
+
+.bible-popup-content sup {
+  font-size: 0.7em;
+  vertical-align: super;
+}
+
+@keyframes popupFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 600px) {
+  #bible-teaching-widget {
+    padding: 15px;
+  }
+  .teaching-card {
+    font-size: clamp(14px, 4vw, 16px);
+    padding: 15px;
+  }
+  button {
+    font-size: 15px;
+    padding: 12px 16px;
+  }
+  .caption {
+    font-size: 16px;
+  }
+  .teaching-card blockquote {
+    font-size: 0.95em;
+    padding: 0.8em;
+  }
+  .bible-popup {
+    max-height: 70vh;
+  }
+}
